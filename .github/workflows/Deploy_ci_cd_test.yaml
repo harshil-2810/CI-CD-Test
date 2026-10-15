@@ -1,0 +1,39 @@
+Name: Deploy CI/CD Test
+
+on:
+  push:
+    branches:
+      - main
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/apps/cicd/CI-CD-Test
+            git pull
+            sudo docker compose up -d --build
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+
+      - name: Deploy to server
+        run: |
+          ssh user@your-server "docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && docker-compose up -d"
