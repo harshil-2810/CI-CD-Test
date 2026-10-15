@@ -25,15 +25,3 @@ jobs:
             cd /home/ubuntu/apps/cicd/CI-CD-Test
             git pull
             sudo docker compose up -d --build
-            
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/my-app:latest
-
-      - name: Deploy to server
-        run: |
-          ssh user@your-server "docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && docker-compose up -d"
